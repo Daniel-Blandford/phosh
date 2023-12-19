@@ -74,4 +74,8 @@
     <signal name="end" handler="on_powerbar_action_ended" swapped="true"/>
     <signal name="cancelled" handler="on_powerbar_action_ended" swapped="true"/>
   </object>
+  <object class="GtkGestureSwipe" id="swipe_gesture">
+    <property name="widget">evbox_home_bar</property>
+    <signal name="swipe" handler="on_home_swiped" />
+  </object>
 </interface>
