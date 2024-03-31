@@ -11,6 +11,7 @@
 #include "phosh-config.h"
 
 #include <gudev/gudev.h>
+#include <glib.h>
 
 #include "torch-manager.h"
 #include "shell.h"
@@ -229,8 +230,27 @@ find_torch_device (PhoshTorchManager *self)
 static gboolean
 find_droid_torch_device (PhoshTorchManager *self)
 {
-  if (PHOSH_DBUS_IS_DROIDIAN_TORCH (self->droid_proxy)){
-    self->max_brightness = 1;
+  if (PHOSH_DBUS_IS_DROIDIAN_TORCH (self->droid_proxy)) {
+    GError *error = NULL;
+    gchar *content = NULL;
+    gsize length = 0;
+
+    if (g_file_get_contents ("/usr/lib/droidian/device/flashlightd-slider", &content, &length, &error)) {
+      gint max_brightness = g_ascii_strtoll (content, NULL, 10);
+
+      if (max_brightness > 0) {
+        self->max_brightness = max_brightness;
+      } else {
+        self->max_brightness = 1;
+      }
+
+      g_free (content);
+    } else {
+      g_warning ("Failed to read max brightness from file: %s, falling back to 1", error->message);
+      g_clear_error(&error);
+      self->max_brightness = 1;
+    }
+
     return TRUE;
   }
 
