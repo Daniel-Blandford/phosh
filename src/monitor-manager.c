@@ -470,6 +470,25 @@ phosh_monitor_manager_handle_get_current_state (PhoshDBusDisplayConfig *skeleton
                              (double)scale,  /* preferred_scale, */
                              &supported_scales_builder,
                              &mode_properties_builder);
+
+      g_variant_builder_add (&modes_builder, MODE_FORMAT,
+                             mode->name,
+                             (gint32)mode->width,
+                             (gint32)mode->height,
+                             (double)90000.0 / 1000.0,
+                             (double)scale,  /* preferred_scale, */
+                             &supported_scales_builder,
+                             &mode_properties_builder);
+
+      g_variant_builder_add (&modes_builder, MODE_FORMAT,
+                             mode->name,
+                             (gint32)mode->width,
+                             (gint32)mode->height,
+                             (double)60000.0 / 1000.0,
+                             (double)scale,  /* preferred_scale, */
+                             &supported_scales_builder,
+                             &mode_properties_builder);
+
     }
 
     g_variant_builder_init (&monitor_properties_builder,
