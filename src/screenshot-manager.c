@@ -635,6 +635,8 @@ phosh_screenshot_manager_do_screenshot (PhoshScreenshotManager *self,
   PhoshWayland *wl = phosh_wayland_get_default ();
   float max_scale = 0.0;
   int num_outputs = 0;
+  char *default_filename = NULL;
+  gchar *screenshots_dir = NULL;
 
   monitor_manager = phosh_shell_get_monitor_manager (phosh_shell_get_default ());
   g_return_val_if_fail (PHOSH_IS_MONITOR_MANAGER (monitor_manager), -EPERM);
@@ -697,16 +699,30 @@ phosh_screenshot_manager_do_screenshot (PhoshScreenshotManager *self,
   if (area)
     frames->area = g_memdup2 (area, sizeof (GdkRectangle));
 
+  screenshots_dir = g_build_filename (g_get_home_dir (), "Pictures", "Screenshots", NULL);
+  if (!g_file_test (screenshots_dir, G_FILE_TEST_IS_DIR)) {
+    g_mkdir_with_parents (screenshots_dir, 0755);
+  }
+
   if (STR_IS_NULL_OR_EMPTY (filename)) {
-    /* Copy to clipboard */
-    frames->filename = NULL;
+    /* Copy to clipboard and save to disk */
+    GDateTime *now = g_date_time_new_now_local ();
+    default_filename = g_strdup_printf ("%s/Screenshot_%s.png",
+                                       screenshots_dir,
+                                       g_date_time_format (now, "%Y-%m-%d_%H-%M-%S"));
+    g_date_time_unref(now);
+
+    frames->filename = default_filename;
   } else {
     frames->filename = build_screenshot_filename (filename);
     if (frames->filename == NULL) {
       g_warning ("Failed to build screenshot filename");
+      g_free (screenshots_dir);
       return FALSE;
     }
   }
+
+  g_free (screenshots_dir);
 
   self->frames = g_steal_pointer (&frames);
   return TRUE;
