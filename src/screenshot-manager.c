@@ -19,6 +19,8 @@
 
 #include "dbus/phosh-screenshot-dbus.h"
 
+#include <gmobile.h>
+
 #include <gio/gunixinputstream.h>
 
 #define BUS_NAME "org.gnome.Shell.Screenshot"
@@ -704,13 +706,13 @@ phosh_screenshot_manager_do_screenshot (PhoshScreenshotManager *self,
     g_mkdir_with_parents (screenshots_dir, 0755);
   }
 
-  if (STR_IS_NULL_OR_EMPTY (filename)) {
+  if (gm_str_is_null_or_empty (filename)) {
     /* Copy to clipboard and save to disk */
     GDateTime *now = g_date_time_new_now_local ();
     default_filename = g_strdup_printf ("%s/Screenshot_%s.png",
-                                       screenshots_dir,
-                                       g_date_time_format (now, "%Y-%m-%d_%H-%M-%S"));
-    g_date_time_unref(now);
+                                        screenshots_dir,
+                                        g_date_time_format (now, "%Y-%m-%d_%H-%M-%S"));
+    g_date_time_unref (now);
 
     frames->filename = default_filename;
   } else {
