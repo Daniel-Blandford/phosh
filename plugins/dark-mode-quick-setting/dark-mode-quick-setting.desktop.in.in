@@ -1,0 +1,7 @@
+[Plugin]
+# Translators: This is an internal id, no need to translate it
+Id=@name@
+Name=Dark Mode Quick Setting
+Types=quick-setting;
+Comment=Enable and disable dark mode
+Plugin=@plugins_dir@/libphosh-plugin-@name@.so
