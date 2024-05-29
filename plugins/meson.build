@@ -46,6 +46,7 @@ quick_setting_plugins = [
   'simple-custom-quick-setting',
   'dark-mode-quick-setting',
   'camera-privacy-quick-setting',
+  'location-privacy-quick-setting',
 ]
 
 plugin_schema_dirs = []
