@@ -48,6 +48,7 @@ quick_setting_plugins = [
   'camera-privacy-quick-setting',
   'location-privacy-quick-setting',
   'microphone-privacy-quick-setting',
+  'powersaving-quick-setting',
 ]
 
 plugin_schema_dirs = []
