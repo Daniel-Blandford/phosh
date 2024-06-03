@@ -414,6 +414,7 @@ panels_dispose (PhoshShell *self)
   g_clear_pointer (&priv->home, phosh_cp_widget_destroy);
 }
 
+#define PHOSH_CSS_OVERRIDE_PATH "/usr/share/phosh/overrides.css"
 
 /* Select proper style sheet in case of high contrast */
 static void
@@ -442,6 +443,15 @@ on_gtk_theme_name_changed (PhoshShell *self, GParamSpec *pspec, GtkSettings *set
   gtk_style_context_add_provider_for_screen (gdk_screen_get_default (),
                                              GTK_STYLE_PROVIDER (provider),
                                              GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+  if (g_file_test (PHOSH_CSS_OVERRIDE_PATH, G_FILE_TEST_EXISTS)) {
+    g_autoptr (GtkCssProvider) override_provider = gtk_css_provider_new ();
+    gtk_css_provider_load_from_file (override_provider, g_file_new_for_path (PHOSH_CSS_OVERRIDE_PATH), NULL);
+    gtk_style_context_add_provider_for_screen (gdk_screen_get_default (),
+                                               GTK_STYLE_PROVIDER (override_provider),
+                                               GTK_STYLE_PROVIDER_PRIORITY_USER);
+  }
+
   g_set_object (&priv->css_provider, provider);
 }
 
