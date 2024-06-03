@@ -142,10 +142,13 @@ static void
 update_drag_handle (PhoshTopPanel *self, gboolean commit)
 {
   int handle, offset;
+  int top_bar_height;
+
+  top_bar_height = phosh_top_panel_get_bar_height (self);
 
   /* By default only the bottom bar handle is draggable */
   handle = phosh_layer_surface_get_configured_height (PHOSH_LAYER_SURFACE (self));
-  handle -= PHOSH_TOP_BAR_HEIGHT;
+  handle -= top_bar_height;
 
   /* Settings might enlarge the draggable area */
   offset = phosh_settings_get_drag_handle_offset (PHOSH_SETTINGS (self->settings));
@@ -443,7 +446,7 @@ phosh_top_panel_dragged (PhoshDragSurface *drag_surface, int margin)
   PhoshTopPanel *self = PHOSH_TOP_PANEL (drag_surface);
   int width, height;
   gtk_window_get_size (GTK_WINDOW (self), &width, &height);
-  phosh_arrow_set_progress (PHOSH_ARROW (self->arrow), -margin / (double)(height - PHOSH_TOP_BAR_HEIGHT));
+  phosh_arrow_set_progress (PHOSH_ARROW (self->arrow), -margin / (double)(height - phosh_top_panel_get_bar_height(self)));
   g_debug ("Margin: %d", margin);
 }
 
@@ -623,9 +626,9 @@ phosh_top_panel_dispose (GObject *object)
 
 
 static int
-get_margin (gint height)
+get_margin (int top_bar_height, gint height)
 {
-  return (-1 * height) + PHOSH_TOP_BAR_HEIGHT;
+  return (-1 * height) + top_bar_height;
 }
 
 
@@ -633,13 +636,16 @@ static gboolean
 on_configure_event (PhoshTopPanel *self, GdkEventConfigure *event)
 {
   guint margin;
-
-  margin = get_margin (event->height);
+  int computed_height;
 
   /* ignore popovers like the power menu */
   if (gtk_widget_get_window (GTK_WIDGET (self)) != event->window)
     return FALSE;
 
+  computed_height = gtk_widget_get_allocated_height (GTK_WIDGET (self->box_top_bar));
+  phosh_drag_surface_set_exclusive (PHOSH_DRAG_SURFACE (self), computed_height); 
+
+  margin = get_margin (computed_height, event->height);
   g_debug ("%s: %dx%d margin: %d", __func__, event->height, event->width, margin);
 
   /* If the size changes we need to update the folded margin */
@@ -782,25 +788,11 @@ set_clock_position (PhoshTopPanel *self, PhoshLayoutManager *layout_manager)
 
 
 static void
-set_margin (PhoshTopPanel *self, PhoshLayoutManager *layout_manager)
-{
-  guint shift;
-
-  shift = phosh_layout_manager_get_corner_shift (layout_manager);
-  g_debug ("Shifting UI elements %d pixels to center ", shift);
-
-  gtk_widget_set_margin_start (GTK_WIDGET (self->box_top_bar), shift);
-  gtk_widget_set_margin_end (GTK_WIDGET (self->box_top_bar), shift);
-}
-
-
-static void
 on_layout_changed (PhoshTopPanel *self, PhoshLayoutManager *layout_manager)
 {
   g_return_if_fail (PHOSH_IS_TOP_PANEL (self));
   g_return_if_fail (PHOSH_IS_LAYOUT_MANAGER (layout_manager));
 
-  set_margin (self, layout_manager);
   set_clock_position (self, layout_manager);
 }
 
@@ -836,7 +828,6 @@ phosh_top_panel_new (struct zwlr_layer_shell_v1          *layer_shell,
                        /* layer-surface */
                        "layer-shell", layer_shell,
                        "wl-output", monitor->wl_output,
-                       "height", PHOSH_TOP_BAR_HEIGHT,
                        "anchor", ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
                                  ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
                                  ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT,
@@ -845,7 +836,6 @@ phosh_top_panel_new (struct zwlr_layer_shell_v1          *layer_shell,
                        "namespace", "phosh top-panel",
                        /* drag-surface */
                        "layer-shell-effects", layer_shell_effects,
-                       "exclusive", PHOSH_TOP_BAR_HEIGHT,
                        "threshold", PHOSH_TOP_PANEL_DRAG_THRESHOLD,
                        NULL);
 }
@@ -896,4 +886,12 @@ phosh_top_panel_get_state (PhoshTopPanel *self)
   g_return_val_if_fail (PHOSH_IS_TOP_PANEL (self), PHOSH_TOP_PANEL_STATE_FOLDED);
 
   return self->state;
+}
+
+
+int
+phosh_top_panel_get_bar_height (PhoshTopPanel *self)
+{
+  if (!self || !self->box_top_bar) return PHOSH_TOP_BAR_DEFAULT_HEIGHT;
+  return gtk_widget_get_allocated_height (GTK_WIDGET (self->box_top_bar));
 }
