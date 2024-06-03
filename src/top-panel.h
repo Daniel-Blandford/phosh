@@ -35,3 +35,4 @@ void               phosh_top_panel_fold (PhoshTopPanel *self);
 void               phosh_top_panel_unfold (PhoshTopPanel *self);
 PhoshTopPanelState phosh_top_panel_get_state (PhoshTopPanel *self);
 int                phosh_top_panel_get_bar_height (PhoshTopPanel *self);
+void               phosh_top_panel_force_update (PhoshTopPanel *self);

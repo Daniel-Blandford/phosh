@@ -211,11 +211,6 @@ update_layout (PhoshLayoutManager *self)
   corner_shift = get_corner_shift (self);
   pos = get_clock_pos (self, &shift);
 
-  if (self->corner_shift == corner_shift &&
-      self->clock_pos == pos && self->clock_shift == shift) {
-    return;
-  }
-
   self->clock_pos = pos;
   self->clock_shift = shift;
   self->corner_shift = corner_shift;
