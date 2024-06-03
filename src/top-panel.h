@@ -12,7 +12,7 @@
 
 G_DECLARE_FINAL_TYPE (PhoshTopPanel, phosh_top_panel, PHOSH, TOP_PANEL, PhoshDragSurface)
 
-#define PHOSH_TOP_BAR_HEIGHT 32
+#define PHOSH_TOP_BAR_DEFAULT_HEIGHT 32
 #define PHOSH_TOP_BAR_ICON_SIZE GTK_ICON_SIZE_SMALL_TOOLBAR
 #define PHOSH_TOP_BAR_MIN_PADDING 9
 
@@ -34,3 +34,4 @@ void               phosh_top_panel_toggle_fold (PhoshTopPanel *self);
 void               phosh_top_panel_fold (PhoshTopPanel *self);
 void               phosh_top_panel_unfold (PhoshTopPanel *self);
 PhoshTopPanelState phosh_top_panel_get_state (PhoshTopPanel *self);
+int                phosh_top_panel_get_bar_height (PhoshTopPanel *self);

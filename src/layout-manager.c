@@ -48,19 +48,19 @@ G_DEFINE_TYPE (PhoshLayoutManager, phosh_layout_manager, G_TYPE_OBJECT)
 /* Space we want reserved for the central clock */
 static GdkRectangle center_clock_rect = {
   .width = 40,
-  .height = PHOSH_TOP_BAR_HEIGHT
+  .height = PHOSH_TOP_BAR_DEFAULT_HEIGHT
 };
 
 static GdkRectangle network_box_rect = {
-  /* Relevant icons are wifi, bt, 2 * wwan, network status */
-  .width = 24 /* px */ * 5,
-  .height = PHOSH_TOP_BAR_HEIGHT
+  /* Relevant icons are wifi, hotspot, bt, 2 * wwan, network status */
+  .width = 24 /* px */ * 6,
+  .height = PHOSH_TOP_BAR_DEFAULT_HEIGHT
 };
 
 static GdkRectangle indicators_box_rect = {
   /* Relevant icons are  battery, vpn, location and language */
   .width = 24 /* px */ * 4 /* max icons */,
-  .height = PHOSH_TOP_BAR_HEIGHT
+  .height = PHOSH_TOP_BAR_DEFAULT_HEIGHT
 };
 
 /**
@@ -190,7 +190,7 @@ get_corner_shift (PhoshLayoutManager *self)
    *    +----+---*
    *    | m    a
    */
-  b = c - (PHOSH_TOP_BAR_HEIGHT - PHOSH_TOP_BAR_ICON_SIZE) / 2;
+  b = c - (PHOSH_TOP_BAR_DEFAULT_HEIGHT - PHOSH_TOP_BAR_ICON_SIZE) / 2;
   a = floor (sqrt((c * c) - (b * b)));
 
   shift = MAX (PHOSH_TOP_BAR_MIN_PADDING, ceil (r - a));
