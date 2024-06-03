@@ -751,3 +751,39 @@ phosh_rotation_manager_set_monitor (PhoshRotationManager *self, PhoshMonitor *mo
                             self);
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_MONITOR]);
 }
+
+/*
+ * phosh_rotation_manager_get_css_class:
+ * @self: The #PhoshRotationManager
+ * 
+ * Get a CSS class to represent the current rotation
+ * 
+ * Returns: (transfer none): A CSS class representing the current rotation
+ */
+const gchar *
+phosh_rotation_manager_get_css_class (PhoshRotationManager *self)
+{
+  g_return_val_if_fail (PHOSH_IS_ROTATION_MANAGER (self), NULL);
+
+  switch (self->transform) {
+  case PHOSH_MONITOR_TRANSFORM_NORMAL:
+    return "rotate-0";
+  case PHOSH_MONITOR_TRANSFORM_90:
+    return "rotate-90";
+  case PHOSH_MONITOR_TRANSFORM_180:
+    return "rotate-180";
+  case PHOSH_MONITOR_TRANSFORM_270:
+    return "rotate-270";
+  case PHOSH_MONITOR_TRANSFORM_FLIPPED:
+    return "rotate-0-flip";
+  case PHOSH_MONITOR_TRANSFORM_FLIPPED_90:
+    return "rotate-90-flip";
+  case PHOSH_MONITOR_TRANSFORM_FLIPPED_180:
+    return "rotate-180-flip";
+  case PHOSH_MONITOR_TRANSFORM_FLIPPED_270:
+    return "rotate-270-flip";
+  default:
+    g_warning ("Unknown transform %d", self->transform);
+    return "rotate-0";
+  }
+}

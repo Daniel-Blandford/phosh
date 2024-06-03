@@ -642,7 +642,7 @@ on_configure_event (PhoshTopPanel *self, GdkEventConfigure *event)
   if (gtk_widget_get_window (GTK_WIDGET (self)) != event->window)
     return FALSE;
 
-  computed_height = gtk_widget_get_allocated_height (GTK_WIDGET (self->box_top_bar));
+  computed_height = phosh_top_panel_get_bar_height (self);
   phosh_drag_surface_set_exclusive (PHOSH_DRAG_SURFACE (self), computed_height); 
 
   margin = get_margin (computed_height, event->height);
@@ -661,15 +661,48 @@ on_configure_event (PhoshTopPanel *self, GdkEventConfigure *event)
 static void
 phosh_top_panel_configured (PhoshLayerSurface *layer_surface)
 {
-  guint width, height;
+  PhoshRotationManager *rotation_manager;
+  const gchar *rotation_class;
+  GtkStyleContext *context;
+  GList *current_classes;
+  PhoshShell *shell = phosh_shell_get_default ();
 
-  width = phosh_layer_surface_get_configured_width  (layer_surface);
-  height = phosh_layer_surface_get_configured_height (layer_surface);
+  rotation_manager = phosh_shell_get_rotation_manager (shell);
+  g_return_if_fail (rotation_manager);
+  rotation_class = phosh_rotation_manager_get_css_class (rotation_manager);
 
-  g_debug ("%s: %dx%d", __func__, width, height);
+  context = gtk_widget_get_style_context (GTK_WIDGET (layer_surface));
+  current_classes = gtk_style_context_list_classes (context);
+
+  for (GList *l = current_classes; l; l = l->next) {
+    if (g_strcmp0 (l->data, rotation_class) == 0)
+      continue;
+
+    gtk_style_context_remove_class (context, l->data);
+  }
+  g_list_free (current_classes);
+
+  gtk_style_context_add_class (context, rotation_class);
 
   PHOSH_LAYER_SURFACE_CLASS (phosh_top_panel_parent_class)->configured (layer_surface);
 }
+
+
+static void
+on_top_bar_allocated (GtkWidget *widget, GdkRectangle *allocation, gpointer user_data)
+{
+  int screen_width, screen_height;
+  PhoshTopPanel *self = PHOSH_TOP_PANEL (user_data);
+  int computed_height = phosh_top_panel_get_bar_height (self);
+
+  gtk_window_get_size (GTK_WINDOW (self), &screen_width, &screen_height);
+
+  phosh_drag_surface_set_exclusive (PHOSH_DRAG_SURFACE (self), computed_height);
+  phosh_drag_surface_set_margin (PHOSH_DRAG_SURFACE (self), get_margin (computed_height, screen_height), 0);
+  update_drag_handle (self, FALSE);
+  phosh_layer_surface_wl_surface_commit (PHOSH_LAYER_SURFACE (self));
+}
+
 
 
 static void
@@ -815,6 +848,7 @@ phosh_top_panel_init (PhoshTopPanel *self)
                            self,
                            G_CONNECT_SWAPPED);
   on_layout_changed (self, layout_manager);
+  g_signal_connect (self->box_top_bar, "size-allocate", G_CALLBACK (on_top_bar_allocated), self);
 }
 
 

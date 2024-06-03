@@ -43,5 +43,6 @@ PhoshMonitorTransform    phosh_rotation_manager_get_transform  (PhoshRotationMan
 PhoshMonitor            *phosh_rotation_manager_get_monitor    (PhoshRotationManager *self);
 void                     phosh_rotation_manager_set_monitor    (PhoshRotationManager *self,
                                                                 PhoshMonitor *monitor);
+const gchar             *phosh_rotation_manager_get_css_class  (PhoshRotationManager *self);
 
 G_END_DECLS
