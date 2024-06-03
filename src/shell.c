@@ -2037,6 +2037,8 @@ phosh_shell_get_usable_area (PhoshShell *self, int *x, int *y, int *width, int *
     *width = w;
   if (height)
     *height = h;
+
+  phosh_top_panel_force_update (PHOSH_TOP_PANEL (priv->top_panel));
 }
 
 /**

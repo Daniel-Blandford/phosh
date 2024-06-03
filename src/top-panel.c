@@ -929,3 +929,12 @@ phosh_top_panel_get_bar_height (PhoshTopPanel *self)
   if (!self || !self->box_top_bar) return PHOSH_TOP_BAR_DEFAULT_HEIGHT;
   return gtk_widget_get_allocated_height (GTK_WIDGET (self->box_top_bar));
 }
+
+
+void
+phosh_top_panel_force_update (PhoshTopPanel *self)
+{
+  g_return_if_fail (PHOSH_IS_TOP_PANEL (self));
+
+  phosh_top_panel_configured (PHOSH_LAYER_SURFACE (self));
+}
