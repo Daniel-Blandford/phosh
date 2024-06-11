@@ -193,6 +193,8 @@ typedef struct
   GtkCssProvider *css_provider;
 
   GSettings      *settings;
+
+  const char     *kiosk_mode_apps;
 } PhoshShellPrivate;
 
 
@@ -333,7 +335,9 @@ on_primary_monitor_configured (PhoshShell *self, PhoshMonitor *monitor)
   priv = phosh_shell_get_instance_private (self);
 
   phosh_shell_get_area (self, NULL, &height);
-  phosh_layer_surface_set_size (PHOSH_LAYER_SURFACE (priv->top_panel), -1, height);
+
+  if (priv->top_panel)
+    phosh_layer_surface_set_size (PHOSH_LAYER_SURFACE (priv->top_panel), -1, height);
 }
 
 
@@ -617,7 +621,7 @@ on_num_toplevels_changed (PhoshShell *self, GParamSpec *pspec, PhoshToplevelMana
 
   priv = phosh_shell_get_instance_private (self);
   /* all toplevels gone, show the overview */
-  if (!phosh_toplevel_manager_get_num_toplevels (toplevel_manager))
+  if (priv->home && !phosh_toplevel_manager_get_num_toplevels (toplevel_manager))
     phosh_home_set_state (PHOSH_HOME (priv->home), PHOSH_HOME_STATE_UNFOLDED);
 }
 
@@ -631,7 +635,7 @@ on_toplevel_added (PhoshShell *self, PhoshToplevel *unused, PhoshToplevelManager
   g_return_if_fail (PHOSH_IS_TOPLEVEL_MANAGER (toplevel_manager));
 
   priv = phosh_shell_get_instance_private (self);
-  if (phosh_toplevel_manager_get_num_toplevels (toplevel_manager) == 1)
+  if (priv->home && phosh_toplevel_manager_get_num_toplevels (toplevel_manager) == 1)
     phosh_home_set_state (PHOSH_HOME (priv->home), PHOSH_HOME_STATE_FOLDED);
 }
 
@@ -746,7 +750,10 @@ setup_idle_cb (PhoshShell *self)
     g_message ("Failed to connect to sensor-proxy: %s", err->message);
 
   priv->layout_manager = phosh_layout_manager_new ();
-  panels_create (self);
+
+  if (!priv->kiosk_mode_apps)
+    panels_create (self);
+
   /* Create background after panel since it needs the panel's size */
   priv->background_manager = phosh_background_manager_new ();
 
@@ -764,37 +771,42 @@ setup_idle_cb (PhoshShell *self)
                            G_CONNECT_SWAPPED);
 
   /* Screen saver manager needs lock screen manager */
-  priv->screen_saver_manager = phosh_screen_saver_manager_new (priv->lockscreen_manager);
+  priv->screen_saver_manager = phosh_screen_saver_manager_new (priv->lockscreen_manager, !!priv->kiosk_mode_apps);
+
   g_signal_connect_swapped (priv->screen_saver_manager,
                             "pb-long-press",
                             G_CALLBACK (on_pb_long_press),
                             self);
 
-  priv->notify_manager = phosh_notify_manager_get_default ();
-  g_signal_connect_object (priv->notify_manager,
-                           "new-notification",
-                           G_CALLBACK (on_new_notification),
-                           self,
-                           G_CONNECT_SWAPPED);
-  g_signal_connect_object (priv->notify_manager,
-                           "notification-activated",
-                           G_CALLBACK (on_notification_activated),
-                           self,
-                           G_CONNECT_SWAPPED);
+  if (!priv->kiosk_mode_apps)
+  {
+    priv->notify_manager = phosh_notify_manager_get_default ();
 
-  phosh_shell_get_location_manager (self);
-  if (priv->sensor_proxy_manager) {
-    priv->proximity = phosh_proximity_new (priv->sensor_proxy_manager,
-                                           priv->calls_manager);
-    phosh_monitor_manager_set_sensor_proxy_manager (priv->monitor_manager,
-                                                    priv->sensor_proxy_manager);
-    g_signal_connect_swapped (priv->proximity, "notify::fader",
-                              G_CALLBACK (on_proximity_fader_changed), self);
-    priv->ambient = phosh_ambient_new (priv->sensor_proxy_manager);
+    g_signal_connect_object (priv->notify_manager,
+                            "new-notification",
+                            G_CALLBACK (on_new_notification),
+                            self,
+                            G_CONNECT_SWAPPED);
+    g_signal_connect_object (priv->notify_manager,
+                            "notification-activated",
+                            G_CALLBACK (on_notification_activated),
+                            self,
+                            G_CONNECT_SWAPPED);
+
+    phosh_shell_get_location_manager (self);
+    if (priv->sensor_proxy_manager) {
+      priv->proximity = phosh_proximity_new (priv->sensor_proxy_manager,
+                                            priv->calls_manager);
+      phosh_monitor_manager_set_sensor_proxy_manager (priv->monitor_manager,
+                                                      priv->sensor_proxy_manager);
+      g_signal_connect_swapped (priv->proximity, "notify::fader",
+                                G_CALLBACK (on_proximity_fader_changed), self);
+      priv->ambient = phosh_ambient_new (priv->sensor_proxy_manager);
+    }
+
+    priv->mount_manager = phosh_mount_manager_new ();
+    priv->gtk_mount_manager = phosh_gtk_mount_manager_new ();
   }
-
-  priv->mount_manager = phosh_mount_manager_new ();
-  priv->gtk_mount_manager = phosh_gtk_mount_manager_new ();
 
   phosh_session_manager_register (priv->session_manager,
                                   PHOSH_APP_ID,
@@ -986,6 +998,10 @@ phosh_shell_constructed (GObject *object)
 
   G_OBJECT_CLASS (phosh_shell_parent_class)->constructed (object);
 
+  priv->kiosk_mode_apps = g_getenv ("PHOSH_KIOSK_MODE_APPS");
+  if (priv->kiosk_mode_apps && !*priv->kiosk_mode_apps)
+    priv->kiosk_mode_apps = NULL;
+
   priv->settings = g_settings_new ("sm.puri.phosh");
 
   /* We bind this early since a wl_display_roundtrip () would make us miss
@@ -1033,7 +1049,7 @@ phosh_shell_constructed (GObject *object)
   priv->calls_manager = phosh_calls_manager_new ();
   priv->launcher_entry_manager = phosh_launcher_entry_manager_new ();
 
-  priv->lockscreen_manager = phosh_lockscreen_manager_new (priv->calls_manager);
+  priv->lockscreen_manager = phosh_lockscreen_manager_new (priv->calls_manager, !!priv->kiosk_mode_apps);
   g_object_bind_property (priv->lockscreen_manager, "locked",
                           self, "locked",
                           G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
@@ -2048,7 +2064,8 @@ phosh_shell_get_usable_area (PhoshShell *self, int *x, int *y, int *width, int *
   if (height)
     *height = h;
 
-  phosh_top_panel_force_update (PHOSH_TOP_PANEL (priv->top_panel));
+  if (priv->top_panel)
+    phosh_top_panel_force_update (PHOSH_TOP_PANEL (priv->top_panel));
 }
 
 /**
