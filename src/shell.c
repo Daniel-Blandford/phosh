@@ -751,11 +751,12 @@ setup_idle_cb (PhoshShell *self)
 
   priv->layout_manager = phosh_layout_manager_new ();
 
-  if (!priv->kiosk_mode_apps)
+  if (!priv->kiosk_mode_apps) {
     panels_create (self);
 
-  /* Create background after panel since it needs the panel's size */
-  priv->background_manager = phosh_background_manager_new ();
+    /* Create background after panel since it needs the panel's size */
+    priv->background_manager = phosh_background_manager_new ();
+  }
 
   g_signal_connect_object (priv->toplevel_manager,
                            "notify::num-toplevels",
