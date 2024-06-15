@@ -18,7 +18,8 @@ G_DECLARE_FINAL_TYPE (PhoshLockscreenManager,
                       LOCKSCREEN_MANAGER,
                       GObject)
 
-PhoshLockscreenManager *phosh_lockscreen_manager_new (PhoshCallsManager *calls_manager);
+PhoshLockscreenManager *phosh_lockscreen_manager_new (PhoshCallsManager *calls_manager,
+                                                      gboolean          kiosk_mode);
 void                    phosh_lockscreen_manager_set_locked  (PhoshLockscreenManager *self,
                                                               gboolean state);
 gboolean                phosh_lockscreen_manager_get_locked  (PhoshLockscreenManager *self);
