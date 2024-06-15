@@ -995,12 +995,17 @@ phosh_shell_constructed (GObject *object)
   PhoshShell *self = PHOSH_SHELL (object);
   PhoshShellPrivate *priv = phosh_shell_get_instance_private (self);
   guint id;
+  const gchar *home_dir = g_get_home_dir ();
+  gchar *file_path = g_build_filename (home_dir, ".config/furios-initial-setup-pending", NULL);
 
   G_OBJECT_CLASS (phosh_shell_parent_class)->constructed (object);
 
   priv->kiosk_mode_apps = g_getenv ("PHOSH_KIOSK_MODE_APPS");
   if (priv->kiosk_mode_apps && !*priv->kiosk_mode_apps)
     priv->kiosk_mode_apps = NULL;
+
+  if (!priv->kiosk_mode_apps && g_file_test (file_path, G_FILE_TEST_EXISTS))
+    priv->kiosk_mode_apps = "furios-initial-setup";
 
   priv->settings = g_settings_new ("sm.puri.phosh");
 
