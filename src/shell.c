@@ -756,6 +756,14 @@ setup_idle_cb (PhoshShell *self)
 
     /* Create background after panel since it needs the panel's size */
     priv->background_manager = phosh_background_manager_new ();
+  } else {
+    /* Since kiosk mode does not load the panels, docked_manager is ultimately never created
+       This happens because its instantiation is actually an indirect side effect of the panel creation
+       (see top-panel.ui). That's quite feeble, but such is life. Anyway; if docked_manager is never
+       created, GTK windows will have a close button in the top right, which doesn't match real use cases
+       and allows users to just close the OOBE window and get stuck. So we create a docked_manager here
+       to fix everything. */
+    phosh_shell_get_docked_manager (self);
   }
 
   g_signal_connect_object (priv->toplevel_manager,
