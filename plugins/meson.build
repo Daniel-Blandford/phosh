@@ -42,9 +42,13 @@ lockscreen_plugins = [
 
 quick_setting_plugins = [
   'caffeine-quick-setting',
+  'dark-mode-quick-setting',
+  'mobile-data-quick-setting',
   'night-light-quick-setting',
   'simple-custom-quick-setting',
-  'dark-mode-quick-setting',
+  'wifi-hotspot-quick-setting',
+
+  // Furi Labs quick settings
   'camera-privacy-quick-setting',
   'location-privacy-quick-setting',
   'microphone-privacy-quick-setting',
@@ -77,6 +81,7 @@ if get_option('lockscreen-plugins') or get_option('quick-setting-plugins')
       gobject_dep,
       gtk_dep,
       libhandy_dep,
+      libnm_dep,
       phosh_plugins_dep,
     ],
   )

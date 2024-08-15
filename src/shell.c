@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 Purism SPC
+ *               2023-2024 The Phosh Develpoers
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -88,8 +89,9 @@
 #include "wwan-info.h"
 #include "wwan/phosh-wwan-ofono.h"
 #include "wwan/phosh-wwan-mm.h"
-#include "wwan/phosh-wwan-backend.h"
 #include "wall-clock.h"
+
+#include "phosh-settings-enums.h"
 
 #define WWAN_BACKEND_KEY "wwan-backend"
 
@@ -196,13 +198,6 @@ typedef struct
 
   const char     *kiosk_mode_apps;
 } PhoshShellPrivate;
-
-
-typedef struct _PhoshShell
-{
-  GObject parent;
-} PhoshShell;
-
 
 static void phosh_shell_action_group_iface_init (GActionGroupInterface *iface);
 static void phosh_shell_action_map_iface_init (GActionMapInterface *iface);
@@ -999,6 +994,25 @@ on_monitor_removed (PhoshShell *self, PhoshMonitor *monitor)
 
 
 static void
+on_keyboard_events_pressed (PhoshShell *self, const char *combo)
+{
+  PhoshShellPrivate *priv = phosh_shell_get_instance_private (self);
+
+  if (!phosh_calls_manager_has_incoming_call (priv->calls_manager))
+    return;
+
+  if (!g_settings_get_boolean (priv->settings, "quick-silent"))
+    return;
+
+  if (g_strcmp0 (combo, "XF86AudioLowerVolume"))
+    return;
+
+  g_debug ("Vol down pressed, silencing device");
+  phosh_feedback_manager_set_profile (priv->feedback_manager, "silent");
+}
+
+
+static void
 phosh_shell_constructed (GObject *object)
 {
   PhoshShell *self = PHOSH_SHELL (object);
@@ -1077,6 +1091,10 @@ phosh_shell_constructed (GObject *object)
 
   priv->feedback_manager = phosh_feedback_manager_new ();
   priv->keyboard_events = phosh_keyboard_events_new ();
+  g_signal_connect_swapped (priv->keyboard_events,
+                            "pressed",
+                            G_CALLBACK (on_keyboard_events_pressed),
+                            self);
 
   id = g_idle_add ((GSourceFunc) setup_idle_cb, self);
   g_source_set_name_by_id (id, "[PhoshShell] idle");
@@ -1206,6 +1224,13 @@ static void phosh_shell_action_map_iface_init (GActionMapInterface *iface)
   iface->remove_action = phosh_shell_remove_action;
 }
 
+
+static GType
+get_lockscreen_type (PhoshShell *self)
+{
+  return PHOSH_TYPE_LOCKSCREEN;
+}
+
 /* }}} */
 /* {{{ GObject init */
 
@@ -1219,6 +1244,8 @@ phosh_shell_class_init (PhoshShellClass *klass)
 
   object_class->set_property = phosh_shell_set_property;
   object_class->get_property = phosh_shell_get_property;
+
+  klass->get_lockscreen_type = get_lockscreen_type;
 
   type_setup ();
 
@@ -1320,6 +1347,12 @@ phosh_shell_init (PhoshShell *self)
 }
 
 /* }}} */
+
+PhoshShell *
+phosh_shell_new (void)
+{
+  return g_object_new (PHOSH_TYPE_SHELL, NULL);
+}
 
 static gboolean
 select_fallback_monitor (gpointer data)
@@ -2109,6 +2142,25 @@ phosh_shell_get_area (PhoshShell *self, int *width, int *height)
     *height = h + top_bar_height + PHOSH_HOME_BAR_HEIGHT;
 }
 
+static PhoshShell *instance;
+
+/**
+ * phosh_shell_set_default:
+ * @self: The shell to use
+ *
+ * Set the PhoshShell singleton that is returned by `phosh_shell_get_default()`
+ */
+void
+phosh_shell_set_default (PhoshShell *self)
+{
+  g_return_if_fail (PHOSH_IS_SHELL (self));
+
+  g_clear_object (&instance);
+
+  instance = self;
+  g_object_add_weak_pointer (G_OBJECT (instance), (gpointer *)&instance);
+}
+
 /**
  * phosh_shell_get_default:
  *
@@ -2119,13 +2171,8 @@ phosh_shell_get_area (PhoshShell *self, int *width, int *height)
 PhoshShell *
 phosh_shell_get_default (void)
 {
-  static PhoshShell *instance;
-
-  if (instance == NULL) {
-    g_debug("Creating shell");
-    instance = g_object_new (PHOSH_TYPE_SHELL, NULL);
-    g_object_add_weak_pointer (G_OBJECT (instance), (gpointer *)&instance);
-  }
+  if (!instance)
+    g_error ("Shell singleton not set");
   return instance;
 }
 
@@ -2503,6 +2550,14 @@ PhoshShellDebugFlags
 phosh_shell_get_debug_flags (void)
 {
   return debug_flags;
+}
+
+
+GType
+phosh_shell_get_lockscreen_type (PhoshShell *self)
+{
+  PhoshShellClass *klass = PHOSH_SHELL_GET_CLASS (self);
+  return klass->get_lockscreen_type (self);
 }
 
 /* }}} */

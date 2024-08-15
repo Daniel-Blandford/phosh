@@ -175,15 +175,18 @@ on_monitor_added (PhoshLockscreenManager *self,
 static void
 lock_primary_monitor (PhoshLockscreenManager *self)
 {
+  GType lockscreen_type;
   PhoshMonitor *primary_monitor;
   PhoshWayland *wl = phosh_wayland_get_default ();
   PhoshShell *shell = phosh_shell_get_default ();
 
+  lockscreen_type = phosh_shell_get_lockscreen_type (shell);
   primary_monitor = phosh_shell_get_primary_monitor (shell);
   g_assert (PHOSH_IS_MONITOR (primary_monitor));
 
   /* The primary output gets the clock, keypad, ... */
   self->lockscreen = PHOSH_LOCKSCREEN (phosh_lockscreen_new (
+                                         lockscreen_type,
                                          phosh_wayland_get_zwlr_layer_shell_v1 (wl),
                                          primary_monitor->wl_output,
                                          self->calls_manager));
@@ -492,4 +495,26 @@ phosh_lockscreen_manager_set_page  (PhoshLockscreenManager *self,
 
   phosh_lockscreen_set_page (self->lockscreen, page);
   return TRUE;
+}
+
+
+/**
+ * phosh_lockscreen_manager_get_lockscreen:
+ * @self: The lockscreen manager
+ *
+ * Gets the current [type@Lockscreen], if one exists (NULL otherwise).
+ *
+ * Returns:(transfer none)(nullable): The lockscreen
+ */
+PhoshLockscreen*
+phosh_lockscreen_manager_get_lockscreen (PhoshLockscreenManager *self)
+{
+  g_return_val_if_fail (PHOSH_IS_LOCKSCREEN_MANAGER (self), NULL);
+
+  if (!self->lockscreen)
+    return NULL;
+
+  g_return_val_if_fail (PHOSH_IS_LOCKSCREEN (self->lockscreen), FALSE);
+
+  return self->lockscreen;
 }
