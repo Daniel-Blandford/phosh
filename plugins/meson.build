@@ -48,7 +48,7 @@ quick_setting_plugins = [
   'simple-custom-quick-setting',
   'wifi-hotspot-quick-setting',
 
-  // Furi Labs quick settings
+  # Furi Labs quick settings
   'camera-privacy-quick-setting',
   'location-privacy-quick-setting',
   'microphone-privacy-quick-setting',
