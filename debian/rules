@@ -11,7 +11,7 @@ else
 endif
 
 ifeq ($(filter nocheck,$(DEB_BUILD_OPTIONS)),)
-  CONFIGURE_OPTS+=-Dtests=true
+  CONFIGURE_OPTS+=-Dtests=false
 else
   CONFIGURE_OPTS+=-Dtests=false
 endif
