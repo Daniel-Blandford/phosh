@@ -46,7 +46,7 @@ quick_setting_plugins = [
   'mobile-data-quick-setting',
   'night-light-quick-setting',
   'simple-custom-quick-setting',
-  'wifi-hotspot-quick-setting',
+#  'wifi-hotspot-quick-setting',
 
   # Furi Labs quick settings
   'camera-privacy-quick-setting',
