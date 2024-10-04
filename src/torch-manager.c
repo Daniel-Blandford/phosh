@@ -249,15 +249,21 @@ find_droid_torch_device (PhoshTorchManager *self)
 
       if (max_brightness > 0) {
         self->max_brightness = max_brightness;
+        self->can_scale = TRUE;
       } else {
         self->max_brightness = 1;
+        self->can_scale = FALSE;
       }
+
+      g_object_notify_by_pspec (G_OBJECT (self), props[PROP_CAN_SCALE]);
 
       g_free (content);
     } else {
       g_warning ("Failed to read max brightness from file: %s, falling back to 1", error->message);
-      g_clear_error(&error);
+      g_clear_error (&error);
       self->max_brightness = 1;
+      self->can_scale = FALSE;
+      g_object_notify_by_pspec (G_OBJECT (self), props[PROP_CAN_SCALE]);
     }
 
     return TRUE;
