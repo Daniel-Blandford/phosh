@@ -54,6 +54,7 @@ Build-Depends:
 Standards-Version: 4.1.3
 Homepage: https://gitlab.gnome.org/World/Phosh/phosh/
 Rules-Requires-Root: no
+XS-FuriOS-Extra-Repos: deb http://furilabs-gtk4.repo.furios.io/trixie-upgrade-4-16-1/ trixie main
 
 Package: phosh
 Architecture: any
