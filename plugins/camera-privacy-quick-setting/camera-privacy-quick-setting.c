@@ -20,8 +20,8 @@
 struct _PhoshCameraPrivacyQuickSetting {
   PhoshQuickSetting        parent;
 
-  PhoshStatusIcon         *info;
   GSettings               *settings;
+  PhoshStatusIcon         *info;
 };
 
 G_DEFINE_TYPE (PhoshCameraPrivacyQuickSetting, phosh_camera_privacy_quick_setting, PHOSH_TYPE_QUICK_SETTING);
@@ -54,16 +54,32 @@ on_clicked (PhoshCameraPrivacyQuickSetting *self)
 }
 
 static void
-on_settings_changed (GSettings *settings, gchar *key, PhoshCameraPrivacyQuickSetting *self)
+on_settings_changed (PhoshCameraPrivacyQuickSetting *self,
+                     gchar                          *key,
+                     GSettings                      *_settings)
 {
   if (g_strcmp0 (key, "disable-camera") == 0)
     update_camera_privacy_status (self);
 }
 
 static void
+phosh_camera_finalize (GObject *object)
+{
+  PhoshCameraPrivacyQuickSetting *self = PHOSH_CAMERA_PRIVACY_QUICK_SETTING (object);
+
+  g_clear_object (&self->settings);
+
+  G_OBJECT_CLASS (phosh_camera_privacy_quick_setting_parent_class)->finalize (object);
+}
+
+
+static void
 phosh_camera_privacy_quick_setting_class_init (PhoshCameraPrivacyQuickSettingClass *klass)
 {
+  GObjectClass *object_class = (GObjectClass *)klass;
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+
+  object_class->finalize = phosh_camera_finalize;
 
   gtk_widget_class_set_template_from_resource (widget_class,
                                                "/mobi/phosh/plugins/camera-privacy-quick-setting/qs.ui");
@@ -76,10 +92,12 @@ phosh_camera_privacy_quick_setting_class_init (PhoshCameraPrivacyQuickSettingCla
 static void
 phosh_camera_privacy_quick_setting_init (PhoshCameraPrivacyQuickSetting *self)
 {
-  self->settings = g_settings_new ("org.gnome.desktop.privacy");
   gtk_widget_init_template (GTK_WIDGET (self));
 
-  g_signal_connect (self->settings, "changed::disable-camera", G_CALLBACK (on_settings_changed), self);
+  self->settings = g_settings_new ("org.gnome.desktop.privacy");
 
   update_camera_privacy_status (self);
+
+  g_signal_connect_swapped (self->settings, "changed::disable-camera",
+                            (GCallback) on_settings_changed, self);
 }
