@@ -4,3 +4,4 @@ usr/lib/*/libgmobile.so*
 usr/lib/*/pkgconfig/gmobile.pc
 usr/lib/udev/hwdb.d/61-gmobile-wakeup.hwdb
 usr/lib/udev/rules.d/61-gmobile.rules
+usr/lib/*/libphosh-0.*.a
