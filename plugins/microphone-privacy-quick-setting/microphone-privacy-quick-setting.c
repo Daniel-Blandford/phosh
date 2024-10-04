@@ -20,8 +20,8 @@
 struct _PhoshMicrophonePrivacyQuickSetting {
   PhoshQuickSetting        parent;
 
-  PhoshStatusIcon         *info;
   GSettings               *settings;
+  PhoshStatusIcon         *info;
 };
 
 G_DEFINE_TYPE (PhoshMicrophonePrivacyQuickSetting, phosh_microphone_privacy_quick_setting, PHOSH_TYPE_QUICK_SETTING);
@@ -54,16 +54,32 @@ on_clicked (PhoshMicrophonePrivacyQuickSetting *self)
 }
 
 static void
-on_settings_changed (GSettings *settings, gchar *key, PhoshMicrophonePrivacyQuickSetting *self)
+on_settings_changed (PhoshMicrophonePrivacyQuickSetting *self,
+                     gchar                              *key,
+                     GSettings                          *_settings)
 {
   if (g_strcmp0 (key, "disable-microphone") == 0)
     update_microphone_privacy_status (self);
 }
 
 static void
+phosh_microphone_finalize (GObject *object)
+{
+  PhoshMicrophonePrivacyQuickSetting *self = PHOSH_MICROPHONE_PRIVACY_QUICK_SETTING (object);
+
+  g_clear_object (&self->settings);
+
+  G_OBJECT_CLASS (phosh_microphone_privacy_quick_setting_parent_class)->finalize (object);
+}
+
+
+static void
 phosh_microphone_privacy_quick_setting_class_init (PhoshMicrophonePrivacyQuickSettingClass *klass)
 {
+  GObjectClass *object_class = (GObjectClass *)klass;
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+
+  object_class->finalize = phosh_microphone_finalize;
 
   gtk_widget_class_set_template_from_resource (widget_class,
                                                "/mobi/phosh/plugins/microphone-privacy-quick-setting/qs.ui");
@@ -76,10 +92,12 @@ phosh_microphone_privacy_quick_setting_class_init (PhoshMicrophonePrivacyQuickSe
 static void
 phosh_microphone_privacy_quick_setting_init (PhoshMicrophonePrivacyQuickSetting *self)
 {
-  self->settings = g_settings_new ("org.gnome.desktop.privacy");
   gtk_widget_init_template (GTK_WIDGET (self));
 
-  g_signal_connect (self->settings, "changed::disable-microphone", G_CALLBACK (on_settings_changed), self);
+  self->settings = g_settings_new ("org.gnome.desktop.privacy");
 
   update_microphone_privacy_status (self);
+
+  g_signal_connect_swapped (self->settings, "changed::disable-microphone",
+                            (GCallback) on_settings_changed, self);
 }
