@@ -2,7 +2,6 @@ Source: phosh
 Section: x11
 Priority: optional
 Maintainer: Guido Günther <agx@sigxcpu.org>
-XS-FuriOS-Extra-Repos: deb http://furilabs-wlroots.repo.furios.io/trixie-upgrade-0-17-4/ trixie main | deb http://furilabs-phoc.repo.furios.io/trixie-upgrade-0-43-0/ trixie main
 Build-Depends:
  debhelper-compat (= 13),
  gi-docgen <!nodoc>,
