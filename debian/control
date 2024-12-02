@@ -66,6 +66,7 @@ Depends:
  gsettings-desktop-schemas (>= 47),
  libcap2-bin,
  phoc (>= 0.33.0),
+ phosh-config-hwcomposer (>= 17),
 Recommends:
  feedbackd (>= 0.4.0),
  fonts-cantarell,
