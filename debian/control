@@ -76,8 +76,7 @@ Recommends:
  librsvg2-common,
  phosh-mobile-tweaks,
  slurp,
-# squeekboard | phosh-osk-stub,
- phosh-osk-stub,
+ squeekboard | phosh-osk-stub,
 Provides:
  notification-daemon,
  polkit-1-auth-agent,
