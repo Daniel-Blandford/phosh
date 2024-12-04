@@ -15,7 +15,7 @@
             <!-- Otherwise search gets input focus and triggers OSK -->
             <property name="can-focus">True</property>
             <!-- PHOSH_HOME_BAR_HEIGHT -->
-            <property name="height-request">15</property>
+            <property name="height-request">0</property>
             <child>
               <object class="GtkBox" id="home_bar">
                 <property name="visible">True</property>
@@ -33,7 +33,7 @@
                         <property name="can-focus">True</property>
                         <property name="visible">True</property>
                         <!-- PHOSH_HOME_BAR_HEIGHT -->
-                        <property name="height-request">15</property>
+                        <property name="height-request">0</property>
                         <property name="width-request">200</property>
                         <property name="name">powerbar</property>
                         <property name="halign">center</property>

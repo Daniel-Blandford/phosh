@@ -1,9 +1,23 @@
 /*
+ * Desktop and homescreen widgets
+ */
+.desktop-container {
+  background-image: radial-gradient(circle at right top, #3038CF, #7C4A70);
+  border-radius: calc(9.5vw);
+  margin-top: calc(45vh);
+}
+
+.desktop-clock {
+  font-size: 64px; 
+  margin-top: calc(24vh);
+}
+
+/*
  * Top panel and bar
  */
 phosh-top-panel {
   font-size: 15px;
-  background: none;
+  background: #3C4854;
   color: @phosh_fg_color;
 }
 
@@ -93,7 +107,8 @@ phosh-quick-setting {
 }
 
 phosh-quick-setting button:hover {
-  background-color: shade(@phosh_button_bg_color, 1.14);
+  background: linear-gradient(135deg, rgba(45,61,75,1) 0%, rgba(18,33,48,1) 100%);
+  color, 1.14);
 }
 
 phosh-quick-setting:active button:hover {
@@ -316,7 +331,7 @@ phosh-home {
 }
 
 .phosh-overview {
-  background: none;
+  background: #3C4854;
   color: @phosh_fg_color;
 }
 
@@ -336,12 +351,12 @@ phosh-home {
 
 /* Search Bar */
 .phosh-search-bar-box {
-  margin: 6px 16px;
+  margin: 0px 0px;
 }
 
 .phosh-search-bar {
   border-radius: 9999px;
-  padding: 3px 18px 3px 14px;
+  padding: 3px 0px 3px 0px;
   border: 1px solid transparent;
   background-color: @phosh_button_bg_color;
   color: inherit;
@@ -360,6 +375,7 @@ phosh-home {
 phosh-app-grid {
   background: none;
   color: @phosh_fg_color;
+  margin-top: calc(90vh);
 }
 
 phosh-app-grid separator {
