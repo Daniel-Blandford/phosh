@@ -2,14 +2,16 @@
  * Desktop and homescreen widgets
  */
 .desktop-container {
+  opacity: 0.65;
+}
+
+.desktop {
   background-image: radial-gradient(circle at right top, #3038CF, #7C4A70);
   border-radius: calc(9.5vw);
-  margin-top: calc(45vh);
 }
 
 .desktop-clock {
   font-size: 64px; 
-  margin-top: calc(24vh);
 }
 
 /*
@@ -375,7 +377,7 @@ phosh-home {
 phosh-app-grid {
   background: none;
   color: @phosh_fg_color;
-  margin-top: calc(90vh);
+  margin-top: calc(88vh);
 }
 
 phosh-app-grid separator {

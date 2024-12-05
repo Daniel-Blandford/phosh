@@ -14,9 +14,9 @@
           <object class="HdyCarousel" id="carousel_running_activities">
             <property name="visible">True</property>
             <property name="orientation">horizontal</property>
-            <property name="spacing">18</property>
+            <property name="spacing">16</property>
             <property name="margin_top">16</property>
-            <property name="margin_bottom">420</property>
+            <property name="margin_bottom">480</property>
             <property name="valign">fill</property>
             <property name="expand">False</property>
             <property name="reveal-duration">200</property>
@@ -25,26 +25,34 @@
         </child>
 
         <child type="overlay">
-          <object class="GtkEventBox" id="evbox_app_grid2">
+          <object class="GtkEventBox" id="evbox_desktop">
             <property name="visible">True</property>
-            <property name="margin_top">400</property>
+            <property name="margin_top">0</property>
             <property name="can_focus">False</property>
             <style>
               <class name="desktop-container"/>
             </style>
-            
-            <child>
-              <object class="GtkLabel" id="my_label">
-                <property name="visible">True</property>
-                <property name="label">12:34:56</property>
-                <property name="use_markup">true</property>
-                <property name="selectable">true</property>
-                <style>
-                  <class name="desktop-clock"/>
-                </style>
-              </object>
-            </child>
 
+                <child>
+                  <object class="GtkBox" id="desktop">
+                    <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
+                    <style>
+                      <class name="desktop"/>
+                    </style>
+                    <child type="center">
+                      <object class="GtkLabel" id="desktop_clock">
+                        <property name="visible">True</property>
+                        <property name="label">12:34:56</property>
+                        <property name="use_markup">true</property>
+                        <property name="selectable">False</property>
+                        <style>
+                          <class name="desktop-clock"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
           </object>
         </child>
 
