@@ -20,6 +20,7 @@
 #include "shell.h"
 #include "toplevel-manager.h"
 #include "toplevel-thumbnail.h"
+#include "swipe-away-bin.h"
 #include "util.h"
 
 #include <gio/gdesktopappinfo.h>
@@ -60,6 +61,7 @@ typedef struct
   /* Running activities */
   GtkWidget *carousel_running_activities;
   GtkWidget *app_grid;
+  GtkWidget *phoshdesktop;
   PhoshActivity *activity;
 
   int       has_activities;
@@ -457,6 +459,51 @@ page_changed_cb (PhoshOverview *self,
     gtk_widget_grab_focus (GTK_WIDGET (activity));
 }
 
+/* Experimental input events */
+static gboolean on_touch_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+    GdkEventTouch *touch_event = (GdkEventTouch *)event;
+
+    // Get the touch ID and coordinates
+    //guint touch_id = touch_event->touch_id;
+    gdouble x = touch_event->x;
+    gdouble y = touch_event->y;
+
+    // Handle the touch event
+    g_print("Touch event: ID u, x %f, y %f\n", x, y);
+
+    return TRUE;
+}
+
+static gboolean
+desktop_touch(GtkWidget* widget, GdkEventTouch* event)
+{
+  if(GTK_IS_CONTAINER(widget)) {
+      GList *children = gtk_container_get_children(GTK_CONTAINER(widget));
+      GList *iter = children;
+      while (iter != NULL) {
+          GtkWidget *child = iter->data;
+          // Check the child's name, class, or other properties to identify the desired child
+          
+    g_debug ("overview_touch_event widget=%s",gtk_widget_get_name(child));
+          /*if (gtk_widget_get_name(child) == "desired_child_name") {
+              // Found the desired child, use it as needed
+              break;
+          }*/
+          iter = g_list_next(iter);
+      }
+    //gtk_widget_set_margin_top (children->, event->y);
+  }
+    return TRUE;
+}
+
+static gboolean
+motion_notify (GtkWidget *self,
+               GdkEventMotion         *event)
+{
+  g_debug ("motion_notify");
+  return GDK_EVENT_PROPAGATE;
+}
 
 static void
 phosh_overview_constructed (GObject *object)
@@ -490,8 +537,10 @@ phosh_overview_constructed (GObject *object)
 
   g_signal_connect_swapped (priv->carousel_running_activities, "page-changed",
                             G_CALLBACK (page_changed_cb), self);
-}
 
+  gtk_widget_add_events (priv->phoshdesktop, GDK_TOUCH_MASK);
+  g_signal_connect(priv->phoshdesktop, "touch-event", G_CALLBACK(on_touch_event), self);
+}
 
 static void
 phosh_overview_class_init (PhoshOverviewClass *klass)
@@ -518,6 +567,10 @@ phosh_overview_class_init (PhoshOverviewClass *klass)
 
   gtk_widget_class_bind_template_child_private (widget_class, PhoshOverview, carousel_running_activities);
   gtk_widget_class_bind_template_child_private (widget_class, PhoshOverview, app_grid);
+  gtk_widget_class_bind_template_child_private (widget_class, PhoshOverview, phoshdesktop);
+
+  widget_class->touch_event = desktop_touch;
+  gtk_widget_class_bind_template_callback (widget_class, motion_notify);
 
   signals[ACTIVITY_LAUNCHED] = g_signal_new ("activity-launched",
       G_TYPE_FROM_CLASS (klass), G_SIGNAL_RUN_LAST, 0, NULL, NULL,

@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="3.20"/>
+  <requires lib="libhandy" version="0.0"/>
   <template class="PhoshOverview" parent="GtkBox">
     <property name="visible">True</property>
     <property name="orientation">vertical</property>
     <child>
-      <object class="GtkOverlay">
+      <object class="GtkOverlay" id="desktop_overlay">
         <property name="visible">1</property>
         <property name="hexpand">1</property>
         <property name="vexpand">1</property>
@@ -27,32 +28,18 @@
         <child type="overlay">
           <object class="GtkEventBox" id="evbox_desktop">
             <property name="visible">True</property>
-            <property name="margin_top">0</property>
-            <property name="can_focus">False</property>
             <style>
               <class name="desktop-container"/>
             </style>
-
-                <child>
-                  <object class="GtkBox" id="desktop">
-                    <property name="visible">True</property>
-                    <property name="orientation">vertical</property>
-                    <style>
-                      <class name="desktop"/>
-                    </style>
-                    <child type="center">
-                      <object class="GtkLabel" id="desktop_clock">
-                        <property name="visible">True</property>
-                        <property name="label">12:34:56</property>
-                        <property name="use_markup">true</property>
-                        <property name="selectable">False</property>
-                        <style>
-                          <class name="desktop-clock"/>
-                        </style>
-                      </object>
-                    </child>
-                  </object>
-                </child>
+            <child>
+              <object class="PhoshDesktop" id="desktop">
+                <property name="visible">True</property>
+                  <signal name="motion-notify-event" handler="motion_notify" swapped="true"/>
+                  <style>
+                    <class name="desktop"/>
+                  </style>
+              </object>
+            </child>
           </object>
         </child>
 

@@ -3,9 +3,15 @@
  */
 .desktop-container {
   opacity: 0.65;
+  margin-top: 200px;
 }
 
 .desktop {
+  background-image: radial-gradient(circle at right top, #3038CF, #7C4A70);
+  border-radius: calc(9.5vw);
+}
+
+phosh-desktop {
   background-image: radial-gradient(circle at right top, #3038CF, #7C4A70);
   border-radius: calc(9.5vw);
 }
