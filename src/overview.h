@@ -7,6 +7,7 @@
 #pragma once
 
 #include "app-grid.h"
+#include "phoshdesktop.h"
 
 #include <gtk/gtk.h>
 
@@ -23,5 +24,6 @@ void       phosh_overview_focus_app_search (PhoshOverview *self);
 gboolean   phosh_overview_has_running_activities (PhoshOverview *self);
 gboolean   phosh_overview_handle_search (PhoshOverview *self, GdkEvent *event);
 PhoshAppGrid *phosh_overview_get_app_grid (PhoshOverview *self);
+PhoshDesktop *phosh_overview_get_phoshdesktop (PhoshOverview *self);
 
 G_END_DECLS

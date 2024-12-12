@@ -13,6 +13,7 @@
 #include "activity.h"
 #include "app-grid-button.h"
 #include "app-grid.h"
+#include "phoshdesktop.h"
 #include "overview.h"
 #include "wlr-screencopy-unstable-v1-client-protocol.h"
 #include "phosh-private-client-protocol.h"
@@ -667,4 +668,15 @@ phosh_overview_get_app_grid (PhoshOverview *self)
   priv = phosh_overview_get_instance_private (self);
 
   return PHOSH_APP_GRID (priv->app_grid);
+}
+
+PhoshDesktop *
+phosh_overview_get_phoshdesktop (PhoshOverview *self)
+{
+  PhoshOverviewPrivate *priv;
+
+  g_return_val_if_fail (PHOSH_IS_OVERVIEW (self), NULL);
+  priv = phosh_overview_get_instance_private (self);
+
+  return PHOSH_DESKTOP (priv->phoshdesktop);
 }

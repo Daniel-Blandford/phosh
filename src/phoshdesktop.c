@@ -1,33 +1,41 @@
 #include <gtk/gtk.h>
-
-typedef struct _PhoshDesktop PhoshDesktop;
-//typedef struct _PhoshDesktopClass PhoshDesktopClass;
+#include "phoshdesktop.h"
 
 struct _PhoshDesktop {
-    //GtkBox parent;
-} _PhoshDesktop;
+    GtkBox parent;
+};
 
+struct _PhoshDesktopClass {
+    GtkBoxClass parent_class;
+};
 
 G_DEFINE_TYPE(PhoshDesktop, phoshdesktop, GTK_TYPE_BOX)
 
 static void phoshdesktop_init(PhoshDesktop *self) {
-    GtkBox *box = GTK_BOX(self);
-    gtk_widget_init_template(GTK_WIDGET(self));
-    gtk_box_pack_end(box, gtk_label_new("12:34:56"), FALSE, FALSE, 0);
+    g_print("PhoshDesktop Widget phoshdesktop_init");
 }
 
 static void phoshdesktop_class_init(PhoshDesktopClass *klass) {
-    GtkBoxClass *box_class = GTK_BOX_CLASS(klass);
-    gtk_widget_class_set_template_from_resource(GTK_WIDGET_CLASS(klass), "/sm/puri/phosh/ui/phoshdesktop.ui");
+    GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
+    gtk_widget_class_set_template_from_resource(widget_class, "/sm/puri/phosh/ui/phoshdesktop.ui");
+    gtk_widget_class_bind_template_child(widget_class, PhoshDesktop, desktop_clock);
+}
+
+GtkWidget *phoshdesktop_new(void) {
+    return GTK_WIDGET(g_object_new(PHOSH_TYPE_DESKTOP, NULL));
 }
 
 int main(int argc, char **argv) {
     gtk_init(&argc, &argv);
 
-    // Register the type of the custom widget
-    phoshdesktop_get_type();
+    // Create a new instance of the custom widget
+    PhoshDesktop *desktop = g_object_new(PHOSH_TYPE_DESKTOP, NULL);
 
-    // Load the UI file
-    GtkBuilder *builder = gtk_builder_new_from_file("phoshdesktop.ui");
+    // Show the custom widget
+    gtk_widget_show(GTK_WIDGET(desktop));
+
+    // Run the main loop
+    gtk_main();
+
     return 0;
 }

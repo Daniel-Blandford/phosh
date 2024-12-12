@@ -34,7 +34,6 @@
             <child>
               <object class="PhoshDesktop" id="desktop">
                 <property name="visible">True</property>
-                  <signal name="motion-notify-event" handler="motion_notify" swapped="true"/>
                   <style>
                     <class name="desktop"/>
                   </style>
