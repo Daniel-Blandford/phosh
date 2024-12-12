@@ -1,20 +1,35 @@
 #include <gtk/gtk.h>
 #include "phoshdesktop.h"
 
+struct _PhoshDesktop
+{
+  GtkBox parent;
+};
+
 G_DEFINE_TYPE (PhoshDesktop, phoshdesktop, GTK_TYPE_BOX)
 
 static void
-phoshdesktop_init (PhoshDesktop *self)
+phoshdesktop_constructed (GObject *object)
 {
-    gtk_widget_init_template (GTK_WIDGET (self));
+  PhoshDesktop *self = PHOSH_DESKTOP (object);
+
+  G_OBJECT_CLASS (phoshdesktop_parent_class)->constructed (object);
+
+  gtk_style_context_add_class (
+      gtk_widget_get_style_context (GTK_WIDGET (self)),
+      "phosh-desktop");
 }
 
 static void
 phoshdesktop_class_init (PhoshDesktopClass *klass)
 {
-    GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
-    gtk_widget_class_set_template_from_resource (widget_class, "/sm/puri/phosh/ui/phoshdesktop.ui");
-    //gtk_widget_class_bind_template_child (widget_class, PhoshDesktop, desktop_clock);
+    GObjectClass *object_class = (GObjectClass *)klass;
+    object_class->constructed = phoshdesktop_constructed;
+}
+
+static void
+phoshdesktop_init (PhoshDesktop *self)
+{
 }
 
 GtkWidget *
