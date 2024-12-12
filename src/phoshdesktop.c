@@ -1,15 +1,6 @@
 #include <gtk/gtk.h>
 #include "phoshdesktop.h"
 
-struct _PhoshDesktop {
-    GtkBox parent;
-    GtkLabel *desktop_clock;
-};
-
-struct _PhoshDesktopClass {
-    GtkBoxClass parent_class;
-};
-
 G_DEFINE_TYPE (PhoshDesktop, phoshdesktop, GTK_TYPE_BOX)
 
 static void
@@ -23,7 +14,7 @@ phoshdesktop_class_init (PhoshDesktopClass *klass)
 {
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
     gtk_widget_class_set_template_from_resource (widget_class, "/sm/puri/phosh/ui/phoshdesktop.ui");
-    gtk_widget_class_bind_template_child (widget_class, PhoshDesktop, desktop_clock);
+    //gtk_widget_class_bind_template_child (widget_class, PhoshDesktop, desktop_clock);
 }
 
 GtkWidget *

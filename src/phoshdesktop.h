@@ -1,3 +1,4 @@
+// phoshdesktop.h
 #ifndef PHOSH_DESKTOP_H
 #define PHOSH_DESKTOP_H
 
@@ -5,6 +6,7 @@
 
 G_BEGIN_DECLS
 
+#define PHOSH_TYPE_DESKTOP (phoshdesktop_get_type())
 G_DECLARE_DERIVABLE_TYPE (PhoshDesktop, phoshdesktop, PHOSH, DESKTOP, GtkBox)
 
 GType phoshdesktop_get_type(void);
