@@ -68,14 +68,13 @@ typedef struct
   int       has_activities;
 } PhoshOverviewPrivate;
 
-
 struct _PhoshOverview
 {
-  GtkBoxClass parent;
+  GtkBox parent;
+  PhoshOverviewPrivate *priv;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE (PhoshOverview, phosh_overview, GTK_TYPE_BOX)
-
 
 static void
 phosh_overview_get_property (GObject    *object,
@@ -589,13 +588,15 @@ phosh_overview_class_init (PhoshOverviewClass *klass)
   gtk_widget_class_set_css_name (widget_class, "phosh-overview");
 }
 
-
 static void
 phosh_overview_init (PhoshOverview *self)
 {
+  PhoshOverviewPrivate *priv = phosh_overview_get_instance_private (self);
   gtk_widget_init_template (GTK_WIDGET (self));
-}
 
+  // Get the child widgets by name
+  priv->phoshdesktop = GTK_WIDGET(gtk_widget_get_template_child (GTK_WIDGET (self), PHOSH_TYPE_OVERVIEW, "phoshdesktop"));
+}
 
 GtkWidget *
 phosh_overview_new (void)
@@ -673,10 +674,10 @@ phosh_overview_get_app_grid (PhoshOverview *self)
 PhoshDesktop *
 phosh_overview_get_phoshdesktop (PhoshOverview *self)
 {
-  PhoshOverviewPrivate *priv;
-
-  g_return_val_if_fail (PHOSH_IS_OVERVIEW (self), NULL);
-  priv = phosh_overview_get_instance_private (self);
-
+  PhoshOverviewPrivate *priv = phosh_overview_get_instance_private (self);
+  if (!PHOSH_IS_DESKTOP (priv->phoshdesktop)) {
+    g_warning ("PhoshDesktop widget is not set or is not of type PhoshDesktop");
+    return NULL;
+  }
   return PHOSH_DESKTOP (priv->phoshdesktop);
 }

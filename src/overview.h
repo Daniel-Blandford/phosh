@@ -6,10 +6,11 @@
 
 #pragma once
 
+#include <gtk/gtk.h>
+#include <glib.h>
+
 #include "app-grid.h"
 #include "phoshdesktop.h"
-
-#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 

@@ -6,7 +6,7 @@
     <child>
       <object class="GtkLabel" id="desktop_clock">
         <property name="visible">true</property>
-        <property name="label">12:34:56</property>
+        <property name="label">Clock</property>
         <property name="use_markup">true</property>
         <property name="selectable">false</property>
         <style>

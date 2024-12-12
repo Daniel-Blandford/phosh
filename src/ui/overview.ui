@@ -32,7 +32,7 @@
               <class name="desktop-container"/>
             </style>
             <child>
-              <object class="PhoshDesktop" id="desktop">
+              <object class="PhoshDesktop" id="phoshdesktop">
                 <property name="visible">True</property>
                   <style>
                     <class name="desktop"/>
