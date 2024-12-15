@@ -392,7 +392,6 @@ num_toplevels_cb (PhoshOverview        *self,
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_HAS_ACTIVITIES]);
 }
 
-
 static void
 phosh_overview_size_allocate (GtkWidget     *widget,
                               GtkAllocation *alloc)
@@ -562,6 +561,7 @@ phosh_overview_class_init (PhoshOverviewClass *klass)
 
   /* ensure used custom types */
   PHOSH_TYPE_APP_GRID;
+  PHOSH_TYPE_DESKTOP;
   gtk_widget_class_set_template_from_resource (widget_class,
                                                "/sm/puri/phosh/ui/overview.ui");
 
@@ -596,6 +596,8 @@ phosh_overview_init (PhoshOverview *self)
 
   // Get the child widgets by name
   priv->phoshdesktop = GTK_WIDGET(gtk_widget_get_template_child (GTK_WIDGET (self), PHOSH_TYPE_OVERVIEW, "phoshdesktop"));
+  //GtkWidget *app_grid = GTK_WIDGET(gtk_widget_get_template_child (GTK_WIDGET (self), PHOSH_TYPE_OVERVIEW, "app-grid"));
+  //GtkWidget *box = GTK_WIDGET(gtk_widget_get_template_child (GTK_WIDGET (self), PHOSH_TYPE_OVERVIEW, "box"));
 }
 
 GtkWidget *

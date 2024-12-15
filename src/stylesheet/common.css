@@ -395,7 +395,8 @@ phosh-home {
 phosh-app-grid {
   background: none;
   color: @phosh_fg_color;
-  margin-top: calc(31vh);
+  /*margin-top: calc(31vh);*/
+  /*margin-top: calc(90vh);*/
 }
 
 phosh-app-grid separator {

@@ -32,7 +32,7 @@
               <class name="desktop-container"/>
             </style>
             <child>
-              <object class="GtkBox" id="phoshdesktop">
+              <object class="PhoshDesktop" id="phoshdesktop">
                 <property name="visible">True</property>
                   <style>
                     <class name="desktop"/>
@@ -43,13 +43,24 @@
         </child>
 
         <child type="overlay">
-          <object class="GtkEventBox" id="evbox_app_grid">
-            <property name="visible">True</property>
-            <property name="margin_top">0</property>
-            <property name="can_focus">False</property>
-            <child>
-              <object class="PhoshAppGrid" id="app_grid">
+          <object class="GtkBox" id="app_grid_positional_wrapper">
+          <property name="visible">True</property>
+          <property name="orientation">vertical</property>
+          <property name="hexpand">True</property>
+          <property name="vexpand">False</property>
+          <property name="height-request">1</property> <!-- Set the fixed height -->
+          <property name="valign">end</property> <!-- Align to the bottom -->
+            <child>              
+              <object class="GtkEventBox" id="evbox_app_grid">
                 <property name="visible">True</property>
+                <property name="margin_top">0</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="PhoshAppGrid" id="app_grid">
+                    <property name="visible">True</property>
+                    <property name="vexpand">False</property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>

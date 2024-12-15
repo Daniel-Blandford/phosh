@@ -63,6 +63,7 @@ G_BEGIN_DECLS
 #include "mode-manager.h"
 #include "mount-manager.h"
 #include "mount-operation.h"
+#include "phoshdesktop.h"
 #include "overview.h"
 #include "password-entry.h"
 #include "osd-window.h"

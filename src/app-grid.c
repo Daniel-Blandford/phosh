@@ -755,11 +755,11 @@ phosh_app_grid_class_init (PhoshAppGridClass *klass)
   gtk_widget_class_set_css_name (widget_class, "phosh-app-grid");
 }
 
-
 GtkWidget *
 phosh_app_grid_new (void)
 {
-  return g_object_new (PHOSH_TYPE_APP_GRID, NULL);
+  GtkWidget *self = g_object_new (PHOSH_TYPE_APP_GRID, NULL);
+  return self;
 }
 
 
