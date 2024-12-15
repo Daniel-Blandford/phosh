@@ -6,7 +6,7 @@
     <child>
       <object class="GtkImage" id="icon">
         <property name="visible">True</property>
-        <property name="pixel-size">64</property>
+        <property name="pixel-size">48</property>
         <property name="icon-name">app-icon-unknown</property>
         <property name="icon-size">6</property>
       </object>

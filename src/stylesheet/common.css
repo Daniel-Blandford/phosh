@@ -2,8 +2,8 @@
  * Desktop and homescreen widgets
  */
 .desktop-container {
-  opacity: 0.65;
-  margin-top: 200px;
+  /*opacity: 0.65;*/
+  /*margin-top: 200px;*/
 }
 
 .desktop {
@@ -18,6 +18,18 @@ phosh-desktop {
 
 .desktop-clock {
   font-size: 64px; 
+}
+/*
+ * Dev tools set background to distinguish views during testing
+ */
+.red-background {
+  background: #FF0000;
+  background-color: #FF0000;
+}
+
+.blue-background {
+  background: #0000FF;
+  background-color: #0000FF;
 }
 
 /*
@@ -326,7 +338,7 @@ phosh-activity.phosh-maximized .phosh-drawingarea {
 }
 
 phosh-home {
-  background: none;
+  background: #3C4853;
   color: @phosh_fg_color;
 }
 
@@ -383,7 +395,7 @@ phosh-home {
 phosh-app-grid {
   background: none;
   color: @phosh_fg_color;
-  margin-top: calc(88vh);
+  margin-top: calc(31vh);
 }
 
 phosh-app-grid separator {
