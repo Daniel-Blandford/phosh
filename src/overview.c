@@ -9,7 +9,7 @@
 #define G_LOG_DOMAIN "phosh-overview"
 
 #include "phosh-config.h"
-
+#include <glib.h>
 #include "activity.h"
 #include "app-grid-button.h"
 #include "app-grid.h"
@@ -63,6 +63,7 @@ typedef struct
   GtkWidget *carousel_running_activities;
   GtkWidget *app_grid;
   GtkWidget *phoshdesktop;
+  GtkWidget *app_grid_positional_wrapper;
   PhoshActivity *activity;
 
   int       has_activities;
@@ -71,10 +72,20 @@ typedef struct
 struct _PhoshOverview
 {
   GtkBox parent;
+  PhoshDesktop *phoshdesktop;
+  GtkWidget *app_grid_positional_wrapper;
+  gdouble drag_start_x;
+  gdouble drag_start_y;
+  gboolean is_dragging;
+  gint64 last_motion_event_time;
+  gint initial_height;
+  gint current_height;
   PhoshOverviewPrivate *priv;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE (PhoshOverview, phosh_overview, GTK_TYPE_BOX)
+
+static gboolean on_button_release_event (GtkWidget *widget, GdkEventButton *event, gpointer user_data);
 
 static void
 phosh_overview_get_property (GObject    *object,
@@ -94,7 +105,6 @@ phosh_overview_get_property (GObject    *object,
     break;
   }
 }
-
 
 static PhoshToplevel *
 get_toplevel_from_activity (PhoshActivity *activity)
@@ -459,10 +469,103 @@ page_changed_cb (PhoshOverview *self,
 }
 
 /* Experimental input events */
-static gboolean on_touch_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+gboolean
+on_button_release_event (GtkWidget      *widget,
+                         GdkEventButton *event,
+                         gpointer        user_data)
+{
+  PhoshOverview *self = PHOSH_OVERVIEW(user_data);
+  PhoshOverviewPrivate *priv = phosh_overview_get_instance_private (self);
+
+    self->drag_start_x = 0;
+    self->drag_start_y = 0;
+    self->is_dragging = FALSE;
+    self->initial_height = 0;
+
+  return GDK_EVENT_PROPAGATE;
+}
+
+gboolean
+on_scroll_event (GtkWidget      *widget,
+                 GdkEventScroll *event,
+                 gpointer        user_data)
+{
+  g_debug ("Overview scroll event: direction=%d", event->direction);
+
+  PhoshOverview *self = PHOSH_OVERVIEW(user_data);
+  PhoshOverviewPrivate *priv = phosh_overview_get_instance_private (self);
+  
+  if (priv->phoshdesktop) {
+    return gtk_widget_event(GTK_WIDGET(priv->phoshdesktop), (GdkEvent *)event);
+  }
+  
+  return GDK_EVENT_PROPAGATE;
+}
+
+#define SMOOTHING_FACTOR 0.2
+
+gboolean
+on_motion_notify_event (GtkWidget      *widget,
+                        GdkEventMotion *event,
+                        gpointer        user_data)
+{
+  PhoshOverview *self = PHOSH_OVERVIEW(user_data);
+  PhoshOverviewPrivate *priv = phosh_overview_get_instance_private (self);
+  
+  if (!self->is_dragging) {
+    self->initial_height = gtk_widget_get_allocated_height(priv->app_grid_positional_wrapper);
+    self->current_height = self->initial_height;
+    self->drag_start_x = event->x;
+    self->drag_start_y = event->y;
+    self->is_dragging = TRUE;
+  }
+
+  gdouble dy = event->y - self->drag_start_y;
+  
+  if (priv->app_grid_positional_wrapper) {
+    // Get the current scale factor
+    gdouble scale_factor = gtk_widget_get_scale_factor(widget);
+    
+    // Apply the scale factor to the dy value
+    gdouble scaled_dy = dy * scale_factor;
+    
+    int target_height = self->initial_height - scaled_dy;
+    target_height = MAX(target_height, 100);  // Clamp to minimum height
+    
+    // Apply low-pass filter for smoothing
+    self->current_height = self->current_height * (1 - SMOOTHING_FACTOR) + target_height * SMOOTHING_FACTOR;
+    
+    // Round to nearest integer to avoid sub-pixel jitter
+    int rounded_height = round(self->current_height);
+    
+    gtk_widget_set_size_request(priv->app_grid_positional_wrapper, -1, rounded_height);
+
+    // Log widget position
+    int widget_x, widget_y;
+    gtk_widget_translate_coordinates(priv->app_grid_positional_wrapper, 
+                                     gtk_widget_get_toplevel(widget), 
+                                     0, 0, &widget_x, &widget_y);
+    
+    // Log finger position
+    gdouble finger_x, finger_y;
+    gdk_event_get_root_coords((GdkEvent*)event, &finger_x, &finger_y);
+
+    g_debug("Widget position: (%d, %d), Finger position: (%.2f, %.2f), Scale factor: %.2f", 
+            widget_x, widget_y, finger_x, finger_y, scale_factor);
+  }
+
+  // Remove debouncing and always queue a redraw
+  gtk_widget_queue_draw(GTK_WIDGET(self));
+
+  return GDK_EVENT_PROPAGATE;
+}
+
+gboolean
+on_touch_event (GtkWidget     *widget,
+                GdkEventTouch *event,
+                gpointer       user_data)
 {
     GdkEventTouch *touch_event = (GdkEventTouch *)event;
-
     // Get the touch ID and coordinates
     //guint touch_id = touch_event->touch_id;
     gdouble x = touch_event->x;
@@ -471,36 +574,14 @@ static gboolean on_touch_event(GtkWidget *widget, GdkEvent *event, gpointer data
     // Handle the touch event
     g_print("Touch event: ID u, x %f, y %f\n", x, y);
 
-    return TRUE;
-}
+  PhoshOverview *self = PHOSH_OVERVIEW(user_data);
+  PhoshDesktop *desktop = phosh_overview_get_phoshdesktop(self);
 
-static gboolean
-desktop_touch(GtkWidget* widget, GdkEventTouch* event)
-{
-  if(GTK_IS_CONTAINER(widget)) {
-      GList *children = gtk_container_get_children(GTK_CONTAINER(widget));
-      GList *iter = children;
-      while (iter != NULL) {
-          GtkWidget *child = iter->data;
-          // Check the child's name, class, or other properties to identify the desired child
-          
-    g_debug ("overview_touch_event widget=%s",gtk_widget_get_name(child));
-          /*if (gtk_widget_get_name(child) == "desired_child_name") {
-              // Found the desired child, use it as needed
-              break;
-          }*/
-          iter = g_list_next(iter);
-      }
-    //gtk_widget_set_margin_top (children->, event->y);
+  // Forward the touch event to PhoshDesktop
+  if (desktop) {
+    return gtk_widget_event(GTK_WIDGET(desktop), (GdkEvent *)event);
   }
-    return TRUE;
-}
 
-static gboolean
-motion_notify (GtkWidget *self,
-               GdkEventMotion         *event)
-{
-  g_debug ("motion_notify");
   return GDK_EVENT_PROPAGATE;
 }
 
@@ -537,8 +618,15 @@ phosh_overview_constructed (GObject *object)
   g_signal_connect_swapped (priv->carousel_running_activities, "page-changed",
                             G_CALLBACK (page_changed_cb), self);
 
-  gtk_widget_add_events (priv->phoshdesktop, GDK_TOUCH_MASK);
-  g_signal_connect(priv->phoshdesktop, "touch-event", G_CALLBACK(on_touch_event), self);
+    // Set up event handling for phoshdesktop
+  gtk_widget_add_events (GTK_WIDGET (priv->phoshdesktop), 
+                         GDK_TOUCH_MASK | GDK_POINTER_MOTION_MASK);
+  g_signal_connect (priv->phoshdesktop, "button-release-event", 
+                    G_CALLBACK (on_button_release_event), self);
+  g_signal_connect (priv->phoshdesktop, "touch-event", 
+                    G_CALLBACK (on_touch_event), self);
+  g_signal_connect (priv->phoshdesktop, "motion-notify-event", 
+                    G_CALLBACK (on_motion_notify_event), self);
 }
 
 static void
@@ -566,11 +654,16 @@ phosh_overview_class_init (PhoshOverviewClass *klass)
                                                "/sm/puri/phosh/ui/overview.ui");
 
   gtk_widget_class_bind_template_child_private (widget_class, PhoshOverview, carousel_running_activities);
+  gtk_widget_class_bind_template_child_private (widget_class, PhoshOverview, app_grid_positional_wrapper);
   gtk_widget_class_bind_template_child_private (widget_class, PhoshOverview, app_grid);
   gtk_widget_class_bind_template_child_private (widget_class, PhoshOverview, phoshdesktop);
 
-  widget_class->touch_event = desktop_touch;
-  gtk_widget_class_bind_template_callback (widget_class, motion_notify);
+
+  gtk_widget_class_bind_template_callback (widget_class, on_touch_event);
+  gtk_widget_class_bind_template_callback (widget_class, on_scroll_event);
+  /*gtk_widget_class_bind_template_callback (widget_class, on_touchpad_swipe_event);
+  gtk_widget_class_bind_template_callback (widget_class, on_touchpad_pinch_event);*/
+  gtk_widget_class_bind_template_callback (widget_class, on_motion_notify_event);
 
   signals[ACTIVITY_LAUNCHED] = g_signal_new ("activity-launched",
       G_TYPE_FROM_CLASS (klass), G_SIGNAL_RUN_LAST, 0, NULL, NULL,
@@ -594,16 +687,68 @@ phosh_overview_init (PhoshOverview *self)
   PhoshOverviewPrivate *priv = phosh_overview_get_instance_private (self);
   gtk_widget_init_template (GTK_WIDGET (self));
 
-  // Get the child widgets by name
-  priv->phoshdesktop = GTK_WIDGET(gtk_widget_get_template_child (GTK_WIDGET (self), PHOSH_TYPE_OVERVIEW, "phoshdesktop"));
-  //GtkWidget *app_grid = GTK_WIDGET(gtk_widget_get_template_child (GTK_WIDGET (self), PHOSH_TYPE_OVERVIEW, "app-grid"));
-  //GtkWidget *box = GTK_WIDGET(gtk_widget_get_template_child (GTK_WIDGET (self), PHOSH_TYPE_OVERVIEW, "box"));
+    self->drag_start_x = 0;
+    self->drag_start_y = 0;
+    self->is_dragging = FALSE;
+    self->initial_height = 0;
+    self->current_height = 300;
+
+  // Initialize phoshdesktop
+  priv->phoshdesktop = phoshdesktop_new ();
+  if (priv->phoshdesktop == NULL) {
+    g_warning("Failed to create PhoshDesktop");
+    return;
+  }
+  gtk_widget_show (GTK_WIDGET (priv->phoshdesktop));
+  gtk_container_add (GTK_CONTAINER (self), GTK_WIDGET (priv->phoshdesktop));
+
+  // Set the height of app_grid_positional_wrapper
+  priv->app_grid_positional_wrapper = GTK_WIDGET(gtk_widget_get_template_child(GTK_WIDGET(self), PHOSH_TYPE_OVERVIEW, "app_grid_positional_wrapper"));
+  if (priv->app_grid_positional_wrapper) {
+    gtk_widget_set_size_request (priv->app_grid_positional_wrapper, -1, self->current_height);
+  }
+
+  // Ensure the phoshdesktop widget can receive all relevant events
+  gtk_widget_add_events(priv->phoshdesktop, 
+                        GDK_TOUCH_MASK |
+                        GDK_SMOOTH_SCROLL_MASK |
+                        GDK_TOUCHPAD_GESTURE_MASK |
+                        GDK_POINTER_MOTION_MASK);  // Add this for motion events
+
+  // Connect the event signals to the phoshdesktop widget
+  g_signal_connect(priv->phoshdesktop, "touch-event", G_CALLBACK(on_touch_event), self);
+  g_signal_connect(priv->phoshdesktop, "scroll-event", G_CALLBACK(on_scroll_event), self);
+  g_signal_connect(priv->phoshdesktop, "motion-notify-event", G_CALLBACK(on_motion_notify_event), self);
+  /*g_signal_connect(priv->phoshdesktop, "touchpad-swipe-event", G_CALLBACK(on_touchpad_swipe_event), self);
+  g_signal_connect(priv->phoshdesktop, "touchpad-pinch-event", G_CALLBACK(on_touchpad_pinch_event), self);*/
+
+  // Remove these events from the overview widget itself
+  gtk_widget_add_events(GTK_WIDGET(self), 
+                        gtk_widget_get_events(GTK_WIDGET(self)) & 
+                        ~(GDK_TOUCH_MASK |
+                          GDK_SMOOTH_SCROLL_MASK |
+                          GDK_TOUCHPAD_GESTURE_MASK |
+                          GDK_POINTER_MOTION_MASK));
 }
 
 GtkWidget *
 phosh_overview_new (void)
 {
   return g_object_new (PHOSH_TYPE_OVERVIEW, NULL);
+}
+
+static void
+phosh_overview_dispose (GObject *object)
+{
+  PhoshOverview *self = PHOSH_OVERVIEW (object);
+  PhoshOverviewPrivate *priv = phosh_overview_get_instance_private (self);
+
+  if (priv->phoshdesktop) {
+    gtk_widget_destroy (GTK_WIDGET (priv->phoshdesktop));
+    priv->phoshdesktop = NULL;
+  }
+
+  G_OBJECT_CLASS (phosh_overview_parent_class)->dispose (object);
 }
 
 
@@ -678,8 +823,8 @@ phosh_overview_get_phoshdesktop (PhoshOverview *self)
 {
   PhoshOverviewPrivate *priv = phosh_overview_get_instance_private (self);
   if (!PHOSH_IS_DESKTOP (priv->phoshdesktop)) {
-    g_warning ("PhoshDesktop widget is not set or is not of type PhoshDesktop");
+    g_warning ("Overview widget is not set or is not of type PhoshDesktop");
     return NULL;
   }
-  return PHOSH_DESKTOP (priv->phoshdesktop);
+  return PHOSH_DESKTOP(priv->phoshdesktop);
 }

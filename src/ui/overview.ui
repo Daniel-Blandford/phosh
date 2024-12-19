@@ -5,6 +5,8 @@
   <template class="PhoshOverview" parent="GtkBox">
     <property name="visible">True</property>
     <property name="orientation">vertical</property>
+    <signal name="motion-notify-event" handler="on_motion_notify_event"/>
+    <signal name="scroll-event" handler="on_scroll_event"/>
     <child>
       <object class="GtkOverlay" id="desktop_overlay">
         <property name="visible">1</property>
@@ -34,6 +36,8 @@
             <child>
               <object class="PhoshDesktop" id="phoshdesktop">
                 <property name="visible">True</property>
+                <signal name="touch-event" handler="on_phoshdesktop_touch_event"/>
+                <signal name="motion-notify-event" handler="on_phoshdesktop_motion_notify_event"/>
                   <style>
                     <class name="desktop"/>
                   </style>
@@ -47,9 +51,8 @@
           <property name="visible">True</property>
           <property name="orientation">vertical</property>
           <property name="hexpand">True</property>
-          <property name="vexpand">False</property>
-          <property name="height-request">1</property> <!-- Set the fixed height -->
-          <property name="valign">end</property> <!-- Align to the bottom -->
+            <property name="vexpand">False</property> 
+            <property name="valign">end</property>  <!-- Align to the bottom -->
             <child>              
               <object class="GtkEventBox" id="evbox_app_grid">
                 <property name="visible">True</property>
@@ -58,7 +61,7 @@
                 <child>
                   <object class="PhoshAppGrid" id="app_grid">
                     <property name="visible">True</property>
-                    <property name="vexpand">False</property>
+                    <property name="vexpand">True</property>
                   </object>
                 </child>
               </object>

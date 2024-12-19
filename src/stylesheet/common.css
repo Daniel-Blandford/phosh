@@ -393,7 +393,8 @@ phosh-home {
 }
 
 phosh-app-grid {
-  background: none;
+  border-radius: calc(9.5vw);
+  background: #3C4854;
   color: @phosh_fg_color;
   /*margin-top: calc(31vh);*/
   /*margin-top: calc(90vh);*/

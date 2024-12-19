@@ -35,3 +35,6 @@ GtkWidget     *phosh_home_new (struct zwlr_layer_shell_v1          *layer_shell,
 PhoshHomeState phosh_home_get_state (PhoshHome *self);
 void           phosh_home_set_state (PhoshHome *self, PhoshHomeState state);
 PhoshOverview *phosh_home_get_overview (PhoshHome *self);
+/* Drag event pass through */
+void phosh_home_set_pass_through (PhoshHome *self, gboolean pass_through);
+

@@ -60,6 +60,7 @@ struct _PhoshHome
   GtkWidget *home_bar;
   GtkWidget *rev_powerbar;
   GtkWidget *powerbar;
+  PhoshDesktop *desktop;
 
   guint      debounce_handle;
   gboolean   focus_app_search;
@@ -83,6 +84,37 @@ struct _PhoshHome
 };
 G_DEFINE_TYPE(PhoshHome, phosh_home, PHOSH_TYPE_DRAG_SURFACE);
 
+static gboolean
+phosh_home_button_press_event (GtkWidget      *widget,
+                               GdkEventButton *event)
+{
+  PhoshHome *self = PHOSH_HOME (widget);
+
+  // Handle the event if needed
+  if (self->state != PHOSH_HOME_STATE_UNFOLDED) {
+    // Your handling code
+    return GDK_EVENT_STOP;
+  }
+
+  // If not handled, propagate the event
+  return GDK_EVENT_PROPAGATE;
+}
+
+static gboolean
+phosh_home_motion_notify_event (GtkWidget      *widget,
+                                GdkEventMotion *event)
+{
+  PhoshHome *self = PHOSH_HOME (widget);
+
+  // Handle the event if needed
+  if (self->state != PHOSH_HOME_STATE_UNFOLDED) {
+    // Your handling code
+    return GDK_EVENT_STOP;
+  }
+
+  // If not handled, propagate the event
+  return GDK_EVENT_PROPAGATE;
+}
 
 static void
 phosh_home_update_home_bar (PhoshHome *self)
@@ -143,6 +175,17 @@ phosh_home_get_property (GObject    *object,
   }
 }
 
+void
+phosh_home_set_pass_through (PhoshHome *self, gboolean pass_through) {
+  g_return_if_fail (PHOSH_IS_HOME (self));
+  
+  PhoshDragSurfaceDragMode drag_mode = pass_through ? 
+    PHOSH_DRAG_SURFACE_DRAG_MODE_NONE : 
+    PHOSH_DRAG_SURFACE_DRAG_MODE_HANDLE;
+  
+  phosh_drag_surface_set_drag_mode (PHOSH_DRAG_SURFACE (self), drag_mode);
+}
+
 
 static void
 update_drag_handle (PhoshHome *self, gboolean commit)
@@ -156,12 +199,10 @@ update_drag_handle (PhoshHome *self, gboolean commit)
   /* reset osk_toggle_long_press to prevent OSK from unfolding accidently */
   gtk_event_controller_reset (GTK_EVENT_CONTROLLER (self->osk_toggle_long_press));
 
-  /* Update the handle's and dragability */
-  if (phosh_overview_has_running_activities (PHOSH_OVERVIEW (self->overview)) == FALSE &&
-    self->state == PHOSH_HOME_STATE_UNFOLDED && drag_state != PHOSH_DRAG_SURFACE_STATE_DRAGGED) {
-    drag_mode = PHOSH_DRAG_SURFACE_DRAG_MODE_NONE;
-  }
-  phosh_drag_surface_set_drag_mode (PHOSH_DRAG_SURFACE (self), drag_mode);
+  // Determine when to allow event pass-through
+  gboolean pass_through = (self->state != PHOSH_HOME_STATE_FOLDED && self->state == PHOSH_HOME_STATE_UNFOLDED && drag_state != PHOSH_DRAG_SURFACE_STATE_DRAGGED);
+
+  phosh_home_set_pass_through(self, pass_through);
 
   /* Update handle size */
   app_grid = phosh_overview_get_app_grid (PHOSH_OVERVIEW (self->overview));
@@ -173,7 +214,7 @@ update_drag_handle (PhoshHome *self, gboolean commit)
     handle = PHOSH_HOME_BAR_HEIGHT;
   }
 
-  g_debug ("Drag Handle: %d", handle);
+  g_debug ("Home - update_drag_handle: Drag Handle: %d", handle);
   phosh_drag_surface_set_drag_handle (PHOSH_DRAG_SURFACE (self), handle);
   if (commit)
     phosh_layer_surface_wl_surface_commit (PHOSH_LAYER_SURFACE (self));
@@ -218,7 +259,7 @@ phosh_home_map (GtkWidget *widget)
 
   GTK_WIDGET_CLASS (phosh_home_parent_class)->map (widget);
 
-  phosh_layer_surface_set_stacked_below (PHOSH_LAYER_SURFACE (self->background),
+  phosh_layer_surface_set_stacked_below (PHOSH_LAYER_SURFACE (self->desktop),
                                          PHOSH_LAYER_SURFACE (self));
 }
 
@@ -629,6 +670,8 @@ phosh_home_class_init (PhoshHomeClass *klass)
   object_class->set_property = phosh_home_set_property;
   object_class->get_property = phosh_home_get_property;
 
+  widget_class->button_press_event = phosh_home_button_press_event;
+  widget_class->motion_notify_event = phosh_home_motion_notify_event;
   widget_class->map = phosh_home_map;
 
   drag_surface_class->dragged = phosh_home_dragged;
@@ -689,6 +732,7 @@ phosh_home_init (PhoshHome *self)
   self->use_background = TRUE;
   self->state = PHOSH_HOME_STATE_FOLDED;
   self->settings = g_settings_new (KEYBINDINGS_SCHEMA_ID);
+  self->desktop = phosh_overview_get_phoshdesktop (PHOSH_OVERVIEW (self->overview));
 
   /* Adjust margins and folded state on size changes */
   g_signal_connect (self, "configure-event", G_CALLBACK (on_configure_event), NULL);
